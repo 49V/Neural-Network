@@ -91,6 +91,17 @@ def hadmardProduct(a,b):
 	
 	return [[a[j][i] * b[j][i] for i in range(numCols)] for j in range(numRows)]
 	
+def transpose(a):
+	numRows = len(a)
+	numCols = len(a[0])
+	
+	b = array(numCols, numRows)
+	
+	for i in range(numRows):
+		for j in range(numCols):
+			b[j][i] = a[i][j] 
+	return b
+	
 def init(input, netSize):
 	"""Initializes architecture of network"""
 	
@@ -111,31 +122,43 @@ def init(input, netSize):
 	#First create network based on size
 	
 
-def fprop(x, netSize):
+def fprop(input, netSize):
 	"""Fprop takes an input and propagates it through the network"""
+	
 	weights = [randomArray(x, y) for x, y in zip(netSize[:-1], netSize[1:]) ]
 	print "Weights \n "
 	pprint(weights)
 	biases = [randomArray(x, 1) for x in netSize[1:]]
 	print "\n Biases \n"
 	pprint(biases)
+
 	
-	#Initialize a as a list
-	a = [array(x, 1) for x in netSize]
-	print" a:"
-	pprint(a)
+	#Initialize a, and z as lists. Remember, we need z to compute the error!
+	z = [array(i, 1) for i in netSize]
+	a = [array(i, 1) for i in netSize]
+	
 	#Assign the input to first layer of activations
-	a[0] = x
+	z[0] = input
+	a[0] = input
 	
 	runs = len(weights[0])
-	print "Runs, ", runs
 	
 	for i in range(runs):
-		a[i + 1] = matrixMultiply(a[i],weights[i]) #
-	
-	pprint(a)	
-	return a
+		z[i + 1] = matrixMultiply(transpose(weights[i]),z[i]) #
+	print "Z:"
+	pprint(z)
+
+	#Remember, we don't computer sigmoid of our input layer
+	for i in (range(1, len(z))):
+		a[i] = sigmoidArray(z[i])
+	print "A: "
+	pprint(a)
+		
+	return a, z
 #----------------------------------------------------------------------------------------------------------    
 
+def bprop(a, weights, biases):
+	#First let us compute delta baby!
+	print "SNADES"
 	
 	
