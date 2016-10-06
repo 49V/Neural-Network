@@ -4,17 +4,6 @@ import math
 import random
 from pprint import pprint
 
-a = [[1,2],[3,4]]
-b = [[1,1,1],[1,1,1]]
-
-inputLayerSize  = 2
-hiddenLayerSize = 3
-outputLayerSize = 1
-
-"""
-MAKE SURE TO OPTIMIZE YOUR ARRAY MODIFICATION CODE BY USING DEEP MODIFICATION AKA PASS BY REFERENCE
-"""
-
 def array (length, width):
 	"""Creates an array of zeroes with specified dimensions"""
 	return [[0 for i in range(width)] for j in range(length)] #List comprehensions (Works like two for loops)
@@ -84,6 +73,14 @@ def matrixAddition(a, b):
 	
 	return [[a[j][i] + b[j][i] for i in range(numCols)] for j in range(numRows)]
 	
+def matrixSubtraction(a, b):
+	"""Creates a matrix by subtracting elementwise. Matrices must have matching dimensions"""
+	
+	numRows = len(a)
+	numCols = len(a[0])
+	
+	return [[ a[j][i] - b[j][i] for i in range(numCols)] for j in range(numRows)]
+	
 def hadmardProduct(a,b):
 	"""Computes hadmard product of two matrices. Matrices must have matching dimensions"""
 	numRows = len(a)
@@ -126,12 +123,7 @@ def fprop(input, netSize):
 	"""Fprop takes an input and propagates it through the network"""
 	
 	weights = [randomArray(x, y) for x, y in zip(netSize[:-1], netSize[1:]) ]
-	print "Weights \n "
-	pprint(weights)
 	biases = [randomArray(x, 1) for x in netSize[1:]]
-	print "\n Biases \n"
-	pprint(biases)
-
 	
 	#Initialize a, and z as lists. Remember, we need z to compute the error!
 	z = [array(i, 1) for i in netSize]
@@ -144,21 +136,37 @@ def fprop(input, netSize):
 	runs = len(weights[0])
 	
 	for i in range(runs):
-		z[i + 1] = matrixMultiply(transpose(weights[i]),z[i]) #
-	print "Z:"
-	pprint(z)
-
+		z[i + 1] = matrixMultiply(transpose(weights[i]),z[i]) 
+		
 	#Remember, we don't computer sigmoid of our input layer
 	for i in (range(1, len(z))):
 		a[i] = sigmoidArray(z[i])
-	print "A: "
-	pprint(a)
 		
-	return a, z
+	return a, z, weights, biases, netSize
 #----------------------------------------------------------------------------------------------------------    
 
-def bprop(a, weights, biases):
-	#First let us compute delta baby!
-	print "SNADES"
+#For test purposes just use netSize
+def bprop(a, z, weights, biases,netSize):
+
+	outputDesired = [[0.5]]
+	#Initialize delta
+	delta = [array(i, 1) for i in netSize]
+	print "Delta:"
+	pprint(delta)
 	
+
+	#DELTA BABY
+	delta[-1] = hadmardProduct((matrixSubtraction(a[-1], outputDesired)), sigmoidPrimeArray(z[-1]))
+	print "Delta - 1"
+	pprint(delta)
+	
+	#We want to go from the second last value until the second value!
+	interval = range(len(netSize) - 2, 0, -1)
+	
+	#Now it's time to backpropagate
+	#Remember, only weights for in between each layer!
+	delta[i] = [hadmardProduct(matrixMultiply(weights[i], delta[i + 1]), sigmoidPrimeArray(z[i])) for i in interval]
+	
+	print "\n DELTA FINAL: \n"
+	pprint(delta)
 	
