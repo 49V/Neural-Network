@@ -1,0 +1,13 @@
+Backpropagation
+
+How to tackle it?
+
+1) Successfully implement forward propagation
+(This means you can pass inputs through your network and get an output. You will need the sigmoid function
+for this)
+
+2)Gradient Descent
+TRAIN YOUR NETWORK TO LEARN BABY!
+
+3)Backpropagation
+So you can actually use gradient descent, and compute the gradients
