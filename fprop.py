@@ -2,101 +2,131 @@ import math
 import random
 from pprint import pprint
 
-class NeuralNetwork(object):
 
-	def init(input, netSize):
-		"""Initializes architecture of network"""
+class Net(object):
+	"""
+	Neural Network classes that creates a neural network objects.
 	
-		#Inputs
-		#For the sake of testing, hard code this value
-		a = [[1], [2]]
-	
+	z(l) = (a(l-1) * w(l-1)) + b
+	a(l) = z(l)
+	Attributes:
+		activations			: Activations of the neural network are sigmoid(z). Activations are output levels
+							  for individual neurons. If an activation level exceeds a threshold, a neuron will fire.
+		biases				: The biases are just the threshold level of an individual neuron that must be exceeded
+							  in order to "fire" a neuron.
+		gradient_biases		: The gradient of the cost function with respect to the biases.
+		gradient_weights	: The gradient of the cost function with respect to the weights.
+		input*				: Inputs to a neural network.
+		netSize*			: The size of each layer of a neural network. For example a netSize of [2, 3, 1]
+							  corresponds to 3 layer network with 2 input neurons, 3 hidden neurons, and 1 output	
+							  neuron.
+		outputs				: The output of a neural network.
+		weights				: The weights of a neural network determine how large of a value an input neuron
+							  contributes for a fixed activation. For example two neurons could each have activation of 0.5, 0.5
+							  respectively. If they had weights of [1, 2] respectively, the second neuron would have twice as much 
+							  of an effect as an input. This neuron is more weighted.
+		z				    : The weighted input. This is simply the activation without a sigmoid function applied : (a(l-1) * w(l-1)) + b 
+	"""
+	def __init__(self, input, netSize):
+		"""Initializes all the attributes of a Neural Network object"""
+		
+		# TRY THIS FOR RANDOM!
+		#
+		#
+		#
+		
+		self.biases           = [self.randomArray(i, 1) for i in netSize[1:]]  # Biases do not exist for the first layer ! Those are inputs.
+		self.netSize          = netSize
 		#Initialize Weights
 		#This initializes the weights for each layer based on the size. The number of rows should be
 		#the number of neurons for the current, and the number of columns should be the same as the number of neurons
-		#in the next layer
-		weights = [randomArray(x, y) for x, y in zip(netSize[:-1], netSize[1:]) ] # netSize[:-1] continues until the 2nd last element in the list
+		#in the next layer. There are no weights for the last layer. That's the output layer.
+		self.weights 		  = [self.randomArray(i, j) for i, j in zip(netSize[:-1], netSize[1:]) ] 
+		
+	def fprop(self, input):
+		"""
+		fprop takes an input and propagates it through the network.
+		z(l) = (a(l-1) * w(l-1)) + b(l)
+		a(l) = z(l)
+		
+		Returns activations, and weighted inputs
+		"""
+		activations      = [self.array(i, 1) for i in self.netSize]		# Activations have same dimensions as network	
+		z                = [self.array(i, 1) for i in self.netSize]      # Weighted input have same dimensions as network
 	
-		#Initialize Biases
-		#Similar sort of thing for biases. We don't have a bias for the first, input layer
-		biases = [randomArray(x, 1) for x in netSize[1:]] 
-	
-		#First create network based on size
-
-
-	
-	def fprop(input, netSize):
-		"""Fprop takes an input and propagates it through the network"""
-	
-		weights = [randomArray(x, y) for x, y in zip(netSize[:-1], netSize[1:]) ]
-		biases = [randomArray(x, 1) for x in netSize[1:]]
-	
-		#Initialize a, and z as lists. Remember, we need z to compute the error!
-		z = [array(i, 1) for i in netSize]
-		a = [array(i, 1) for i in netSize]
-	
-		#Assign the input to first layer of activations
+		
+		#Assign the input to first layer of activations, and weighted inputs
 		z[0] = input
-		a[0] = input
-	
-		runs = len(weights[0])
-	
+		activations[0] = input
+		runs = len(self.weights[0])
+		
+		#Propagate z through the network.
 		for i in range(runs):
-			z[i + 1] = matrixMultiply(transpose(weights[i]),z[i]) 
-		
-		#Remember, we don't computer sigmoid of our input layer
-		for i in (range(1, len(z))):
-			a[i] = sigmoidArray(z[i])
-		
-		return a, z, weights, biases, netSize
-	#----------------------------------------------------------------------------------------------------------    
-
-	#For test purposes just use netSize
-	def bprop(a, z, weights, biases,netSize):
+			z[i + 1] = self.matrixAddition(self.matrixMultiply(self.transpose(self.weights[i]), activations[i]), self.biases[i]) 
+			activations[i + 1] = self.sigmoidArray(z[i + 1])
+			
+		return activations, z
+	
+	def bprop(self, input, output):
 		"""
 		Compute the gradients for the biases and the weights for a given input and ouput tuple (x, y)
-	
-		a       : Matrix of Activations
-		z       : Matrix of Weighted Inputs
-		weights : Matrix containing all weights
-		biases  : Matrix containing all biases
-		netSize : List containing sizing dimensions of a network i.e. (2, 3, 1) means a networks that
-		has 3 layers. 2 neurons in the input layer, 3 neurons in the hidden layer, and 1 neuron in the 
-		output layer.
 		"""
 
+		gradient_biases  = [self.array(i, 1) for i in self.netSize[1:]]
+		gradient_weights = [self.array(i, j) for i, j in zip(self.netSize[:-1], self.netSize[1:])]
+		
+		"""
+		First we should obtain our activations and z for a given input
+		"""
+		a, z = self.fprop(input)
+		
 		"""
 		1) Initialization
 		"""
-		outputDesired = [[0.5]]
+		
 		#Initialize delta
-		delta = [array(i, 1) for i in netSize]
-		print "Delta:"
-		pprint(delta)
+		delta = [self.array(i, 1) for i in self.netSize]
 	
 		"""
 		2) Compute output error, delta
 		"""
-		delta[-1] = hadmardProduct((matrixSubtraction(a[-1], outputDesired)), sigmoidPrimeArray(z[-1]))
-		print "Delta - 1"
-		pprint(delta)
+		delta[-1] = self.hadmardProduct((self.matrixSubtraction(a[-1], output)), self.sigmoidPrimeArray(z[-1]))
 	
 		#We want to go from the second last value until the second value!
-		interval = range(len(netSize) - 2, 0, -1)
+		interval = range(len(self.netSize) - 2, 0, -1)
 	
 		"""
 		3) Backpropagate the error to all previous layers.
 		"""
 		#Now it's time to backpropagate
 		#Remember, only weights for in between each layer!
-		delta[i] = [hadmardProduct(matrixMultiply(weights[i], delta[i + 1]), sigmoidPrimeArray(z[i])) for i in interval]
+		#BE VERY CAREFUL WHEN USING LIST COMPREHENSIONS!
+		for i in interval:
+			delta[i] = self.hadmardProduct(self.matrixMultiply(self.weights[i], delta[i + 1]), self.sigmoidPrimeArray(z[i])) 
 	
 		"""
 		4) Compute Gradients.
 		"""
 		#We have weights for every layer except for the last
-		numLayers = len(netSize[0])
-		gradient_weights[i] =[matrixMultiply(delta[i], transpose(a[-i - 1])) for i in range(2, numLayers)] 
+		numLayers = len(self.netSize)
+		
+		"""
+		Remember how you arrange weights.
+		You arrange weights from the jth neuron in the lth layer, to the kth neuron in the lth + 1 layer
+		     -
+		-   
+		     -
+		-
+		     -
+		Because of the way you have it arranged, the weights only exist for every layer except for the last!	 
+		So for the gradient with respect to the weight, the formula is d/dw (l) = a(l) * delta(i + 1)
+		It isn't the same as in the book!
+		
+		This should also be activations * delta ^T (delta transpose)
+		"""
+		for i in range(0, numLayers - 1):
+			gradient_weights[i] =self.matrixMultiply(a[i], self.transpose(delta[i + 1]))  
+		
 		#We have biases for every layer but the first, and the last layer
 		gradient_biases = delta
 	
@@ -113,73 +143,77 @@ class NeuralNetwork(object):
 	
 		return gradient_biases, gradient_weights
 
-	def gradientDescent(eta, miniBatch, netSize):
+	def gradientDescent(eta, miniBatch):
 		"""
 		#Takes a learning rate eta, and a mini batch (miniBatch) and returns updated biases and weights
-		#based on gradients.
+		#based on gradients. A mini batch is just a subset of the input and output tuples (x, y)
 		"""
 		batchSize = len(miniBatch)
 	
 		#REALLY INEFFICIENT, NEED TO USE LESS LISTS! SO MANY RESOURCES MOSHE! Alright for POC
-		sum_biases  = [array(i,1) for i in netSize[1:]]
-		temp_biases = [array(i,1) for i in netSize[1:]]
-		eta_biases  = [array(i,1) for i in netSize[1:]] 
+		sum_biases  = [self.array(i,1) for i in self.netSize[1:]]
+		temp_biases = [self.array(i,1) for i in self.netSize[1:]]
+		eta_biases  = [self.array(i,1) for i in self.netSize[1:]] 
 	
-		sum_weights  = [[array(i,j) for i,j in zip(netSize[:-1], netSize[1:])]]
-		temp_weights = [[array(i,j) for i,j in zip(netSize[:-1], netSize[1:])]]
-		eta_weights  = [[array(i,j) for i,j in zip(netSize[:-1], netSize[1:])]]
+		sum_weights  = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
+		temp_weights = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
+		eta_weights  = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
 	
 		#First calculate the sum of the gradients of the biases, and weights respectively
-		for x,y in miniBatch:
-			temp_biases, temp_weights = bprop(x, y, netSize)
+		for i, j in miniBatch:
+			temp_biases, temp_weights = self.bprop(i, j, self.netSize)
 			#Remember you have lists within lists, can't just add.
-			sum_biases  = [matrixAddition(i, j) for i, j in zip(sum_biases, temp_biases)]
-			sum_weights = [matrixAddition(i, j) for i, j in zip(sum_weights, temp_weights)]
+			sum_biases  = [self.matrixAddition(i, j) for i, j in zip(sum_biases, temp_biases)]
+			sum_weights = [self.matrixAddition(i, j) for i, j in zip(sum_weights, temp_weights)]
 
 		#Then update the biases and weights using the learning rate and batch size
-		biases  = [matrixSubtraction(b, ((eta/batchSize) * sb)) for b, sb in zip(biases, sum_biases)]
-		weights = [matrixSubtraction(w, ((eta/batchSize) * sw)) for w, sw in zip(weights, sum_weights)]
+		self.biases  = [self.matrixSubtraction(b, ((eta/batchSize) * sb)) for b, sb in zip(self.biases, sum_biases)]
+		self.weights = [self.matrixSubtraction(w, ((eta/batchSize) * sw)) for w, sw in zip(self.weights, sum_weights)]
 	
-		return biases, weights
-	
-	def array (length, width):
+	def array (self, length, width):
 		"""Creates an array of zeroes with specified dimensions"""
 		return [[0 for i in range(width)] for j in range(length)] #List comprehensions (Works like two for loops)
-
-	def matrixElementMultiply (value, list):
+	
+	
+	def matrixElementMultiply (self, value, list):
 		"""Multiplies each element of a list by the given value"""
 		numRows = len(list)
 		numCols = len(list[0])
 	
 		return [[value * list[j][i] for i in range(numCols)] for j in range(numRows)]
 	
-	#Use double loops to create a random array of neat stuff
-	def randomArray (length, width):
+	
+	def randomArray (self, length, width):
 		"""Creates a random array of dimensions as per length and width"""
 		return [[random.random() for 
 		i in range(width)] for j in range(length)]
-
-	def sigmoidArray(x):
+	
+	
+	def sigmoidArray(self, x):
 		"""This simply returns the value of our sigmoid function"""
 	
 		numRows = len(x)
 		numCols = len(x[0])
 	
-		return [[sigmoid(x[j][i]) for i in range(numCols)] for j in range(numRows)]
+		return [[self.sigmoid(x[j][i]) for i in range(numCols)] for j in range(numRows)]
 	
-	def sigmoid(x):
+	
+	def sigmoid(self, x):
 		return (1 / (1 + math.exp(-x)))
+		
 	
-	def sigmoidPrime(x):
+	def sigmoidPrime(self, x):
 		return math.exp(x)/((1 + math.exp(-x))**2)
+		
 	
-	def sigmoidPrimeArray(x):
+	def sigmoidPrimeArray(self, x):
 		numRows = len(x)
 		numCols = len(x[0])
 	
-		return [[sigmoidPrime(x[j][i]) for i in range(numCols)] for j in range(numRows)]
+		return [[self.sigmoidPrime(x[j][i]) for i in range(numCols)] for j in range(numRows)]
+
 	
-	def matrixMultiply(a, b):
+	def matrixMultiply(self, a, b):
 
 		#Number of rows of matrix a
 		numRowsA = len(a)
@@ -187,7 +221,7 @@ class NeuralNetwork(object):
 		numRowsB = len(b)
 		numColsB = len(b[0])
 	
-		c = array(numRowsA, numColsB)
+		c = self.array(numRowsA, numColsB)
 	
 		#Loop through rows of first matrix
 		for i in range(numRowsA):
@@ -198,46 +232,51 @@ class NeuralNetwork(object):
 			
 		return c
 	
-
-	def dotProduct(a, b):
+	
+	def dotProduct(self, a, b):
 		length = len(a)
 		width  = len(a[0])
 		return [[a[i][j] * b[i][j] for i in range(width)] for j in range(length)]
 
-	def dotProductArray(a, b):
+	
+	def dotProductArray(self, a, b):
 		length = len(a)
 		width  = len(a[0])
 	
-		return [[dotProduct(a[i], b[i]) for i in range(length)] for j in range(width)]
+		return [[self.dotProduct(a[i], b[i]) for i in range(length)] for j in range(width)]
+
 	
-	def matrixAddition(a, b):
+	def matrixAddition(self, a, b):
 		"""Creates a matrix by adding element wise. Matrices must have matching dimensions"""
 	
 		numRows = len(a)
 		numCols = len(a[0])
 	
 		return [[a[j][i] + b[j][i] for i in range(numCols)] for j in range(numRows)]
+
 	
-	def matrixSubtraction(a, b):
+	def matrixSubtraction(self, a, b):
 		"""Creates a matrix by subtracting elementwise. Matrices must have matching dimensions"""
 	
 		numRows = len(a)
 		numCols = len(a[0])
 	
 		return [[ a[j][i] - b[j][i] for i in range(numCols)] for j in range(numRows)]
+
 	
-	def hadmardProduct(a,b):
+	def hadmardProduct(self, a,b):
 		"""Computes hadmard product of two matrices. Matrices must have matching dimensions"""
 		numRows = len(a)
 		numCols = len(a[0])
 	
 		return [[a[j][i] * b[j][i] for i in range(numCols)] for j in range(numRows)]
+
 	
-	def transpose(a):
+	def transpose(self, a):
 		numRows = len(a)
 		numCols = len(a[0])
 	
-		b = array(numCols, numRows)
+		b = self.array(numCols, numRows)
 	
 		for i in range(numRows):
 			for j in range(numCols):
