@@ -27,7 +27,7 @@ class Net(object):
 							  of an effect as an input. This neuron is more weighted.
 		z				    : The weighted input. This is simply the activation without a sigmoid function applied : (a(l-1) * w(l-1)) + b 
 	"""
-	def __init__(self, input, netSize):
+	def __init__(self, netSize):
 		"""Initializes all the attributes of a Neural Network object"""
 		
 		# TRY THIS FOR RANDOM!
@@ -80,13 +80,18 @@ class Net(object):
 		"""
 		a, z = self.fprop(input)
 		
+		print "a: "
+		pprint(a)
+		print "z: "
+		pprint(z)
+		
 		"""
 		1) Initialization
 		"""
 		
 		#Initialize delta
-		delta = [self.array(i, 1) for i in self.netSize]
-	
+		delta = [self.array(i, 1) for i in self.netSize[1:]]
+				
 		"""
 		2) Compute output error, delta
 		"""
@@ -102,7 +107,7 @@ class Net(object):
 		#Remember, only weights for in between each layer!
 		#BE VERY CAREFUL WHEN USING LIST COMPREHENSIONS!
 		for i in interval:
-			delta[i] = self.hadmardProduct(self.matrixMultiply(self.weights[i], delta[i + 1]), self.sigmoidPrimeArray(z[i])) 
+			delta[i - 1] = self.hadmardProduct(self.matrixMultiply(self.weights[i], delta[i]), self.sigmoidPrimeArray(z[i])) 
 	
 		"""
 		4) Compute Gradients.
@@ -125,47 +130,58 @@ class Net(object):
 		This should also be activations * delta ^T (delta transpose)
 		"""
 		for i in range(0, numLayers - 1):
-			gradient_weights[i] =self.matrixMultiply(a[i], self.transpose(delta[i + 1]))  
+			gradient_weights[i] =self.matrixMultiply(a[i], self.transpose(delta[i]))  
 		
 		#We have biases for every layer but the first, and the last layer
 		gradient_biases = delta
 	
-	
 		print "\n DELTA FINAL: \n"
 		pprint(delta)
-	
 		print "\n GRADIENT WEIGHTS: \n"
 		pprint(gradient_weights)
-	
 		print "\n GRADIENT BIASES: \n"
 		pprint(gradient_biases)
 	
-	
 		return gradient_biases, gradient_weights
 
-	def gradientDescent(eta, miniBatch):
+	def gradientDescent(self, eta, miniBatch):
 		"""
-		#Takes a learning rate eta, and a mini batch (miniBatch) and returns updated biases and weights
+		#Takes a learning rate eta, and a mini batch (miniBatch) and updates biases and weights
 		#based on gradients. A mini batch is just a subset of the input and output tuples (x, y)
 		"""
+		print "Minibatch: "
+		pprint(miniBatch)
+		
+		#assuming input/output tuples
 		batchSize = len(miniBatch)
 	
-		#REALLY INEFFICIENT, NEED TO USE LESS LISTS! SO MANY RESOURCES MOSHE! Alright for POC
-		sum_biases  = [self.array(i,1) for i in self.netSize[1:]]
-		temp_biases = [self.array(i,1) for i in self.netSize[1:]]
-		eta_biases  = [self.array(i,1) for i in self.netSize[1:]] 
-	
-		sum_weights  = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
-		temp_weights = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
-		eta_weights  = [[self.array(i,j) for i,j in zip(self.netSize[:-1], self.netSize[1:])]]
+		#Create matrices to hold the sums of the gradients for a given minibatch
+		sum_biases  = [self.array(i, 1) for i in self.netSize[1:]]
+		sum_weights  = [self.array(i, j) for i, j in zip(self.netSize[:-1], self.netSize[1:])]
 	
 		#First calculate the sum of the gradients of the biases, and weights respectively
 		for i, j in miniBatch:
-			temp_biases, temp_weights = self.bprop(i, j, self.netSize)
+			temp_biases, temp_weights = self.bprop(i, j)
+			
+			print " sum biases: "
+			pprint(sum_biases)
+			print " temp biases: "
+			pprint(temp_biases)
+			"""
+			I am currently mismatching sizes of my gradient biases, gradient weights, and my biases and weights.
+			FIX THIS
+			"""
+			
 			#Remember you have lists within lists, can't just add.
-			sum_biases  = [self.matrixAddition(i, j) for i, j in zip(sum_biases, temp_biases)]
-			sum_weights = [self.matrixAddition(i, j) for i, j in zip(sum_weights, temp_weights)]
+			sum_biases  = [self.matrixAddition(k, l) for k, l in zip(sum_biases, temp_biases)]
+			sum_weights = [self.matrixAddition(k, l) for k, l in zip(sum_weights, temp_weights)]
 
+		print "GRADIENT BIASES (GRADIENT DESCENT): \n"
+		pprint(sum_biases)
+		
+		print "GRADIENT WEIGHTS (GRADIENT DESCENT): \n"
+		pprint(sum_weights)
+			
 		#Then update the biases and weights using the learning rate and batch size
 		self.biases  = [self.matrixSubtraction(b, ((eta/batchSize) * sb)) for b, sb in zip(self.biases, sum_biases)]
 		self.weights = [self.matrixSubtraction(w, ((eta/batchSize) * sw)) for w, sw in zip(self.weights, sum_weights)]
