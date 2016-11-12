@@ -152,6 +152,12 @@ class Net(object):
 		print "Minibatch: "
 		pprint(miniBatch)
 		
+		print "Weights"
+		pprint(self.weights)
+		
+		print "Biases"
+		pprint(self.biases)
+		
 		#assuming input/output tuples
 		batchSize = len(miniBatch)
 	
@@ -163,14 +169,16 @@ class Net(object):
 		for i, j in miniBatch:
 			temp_biases, temp_weights = self.bprop(i, j)
 			
+			print "I"
+			pprint (i)
+			
+			print "J"
+			pprint(j)
+			
 			print " sum biases: "
 			pprint(sum_biases)
 			print " temp biases: "
 			pprint(temp_biases)
-			"""
-			I am currently mismatching sizes of my gradient biases, gradient weights, and my biases and weights.
-			FIX THIS
-			"""
 			
 			#Remember you have lists within lists, can't just add.
 			sum_biases  = [self.matrixAddition(k, l) for k, l in zip(sum_biases, temp_biases)]

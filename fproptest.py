@@ -9,8 +9,8 @@ output = [ [0], [1], [0], [1]]
 binput = [[1], [2]]
 boutput = [[1]]
 
-input = [[[1], [2]]]
-output = [[[1]]]
+input = [[[1], [2]], [[3], [4]]]
+output = [[[1]], [[0]]]
 netSize = [2, 3, 1]
 
 eta = 1 #learning rate
