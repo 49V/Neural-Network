@@ -149,6 +149,7 @@ class Net(object):
 		#Takes a learning rate eta, and a mini batch (miniBatch) and updates biases and weights
 		#based on gradients. A mini batch is just a subset of the input and output tuples (x, y)
 		"""
+		
 		print "Minibatch: "
 		pprint(miniBatch)
 		
@@ -157,6 +158,7 @@ class Net(object):
 		
 		print "Biases"
 		pprint(self.biases)
+
 		
 		#assuming input/output tuples
 		batchSize = len(miniBatch)
@@ -167,7 +169,12 @@ class Net(object):
 	
 		#First calculate the sum of the gradients of the biases, and weights respectively
 		for i, j in miniBatch:
+		
 			temp_biases, temp_weights = self.bprop(i, j)
+			
+			print """
+				  PASS---------------------------------------------------------------------------- 
+				  """
 			
 			print "I"
 			pprint (i)
@@ -189,10 +196,16 @@ class Net(object):
 		
 		print "GRADIENT WEIGHTS (GRADIENT DESCENT): \n"
 		pprint(sum_weights)
-			
+		
 		#Then update the biases and weights using the learning rate and batch size
-		self.biases  = [self.matrixSubtraction(b, ((eta/batchSize) * sb)) for b, sb in zip(self.biases, sum_biases)]
-		self.weights = [self.matrixSubtraction(w, ((eta/batchSize) * sw)) for w, sw in zip(self.weights, sum_weights)]
+		self.biases  = [self.matrixSubtraction(b, self.matrixElementMultiply((eta/batchSize), sb)) for b, sb in zip(self.biases, sum_biases)]
+		self.weights = [self.matrixSubtraction(w, self.matrixElementMultiply((eta/batchSize), sw)) for w, sw in zip(self.weights, sum_weights)]
+		
+		print "FINAL BIASES"
+		pprint(self.biases)
+		
+		print "FINAL WEIGHTS"
+		pprint(self.weights)
 	
 	def array (self, length, width):
 		"""Creates an array of zeroes with specified dimensions"""
