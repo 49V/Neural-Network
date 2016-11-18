@@ -16,7 +16,7 @@ input = [[[1], [2]], [[3], [4]]]
 output = [[[1]], [[0]]]
 netSize = [2, 3, 1]
 
-eta = 1 #learning rate
+eta = 1.0 #learning rate
 
 miniBatch = zip(input, output)
 
@@ -24,4 +24,7 @@ sadie = Net(netSize)
 
 sadie.gradientDescent(eta, miniBatch)
 
-raw_input("promt: ")
+#sadie.fprop(binput)
+
+#sadie.fprop(binput2)
+

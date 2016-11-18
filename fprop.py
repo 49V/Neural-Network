@@ -65,6 +65,9 @@ class Net(object):
 			z[i + 1] = self.matrixAddition(self.matrixMultiply(self.transpose(self.weights[i]), activations[i]), self.biases[i]) 
 			activations[i + 1] = self.sigmoidArray(z[i + 1])
 			
+			
+		print "OUTPUTS:"	
+		pprint (activations)
 		return activations, z
 	
 	def bprop(self, input, output):
@@ -198,7 +201,27 @@ class Net(object):
 		pprint(sum_weights)
 		
 		#Then update the biases and weights using the learning rate and batch size
+		
+		#MAKE SURE TO TURN ETA INTO A FLOAT OR ELSE YOU WILL GET INTEGER MULTIPLICATION!
 		self.biases  = [self.matrixSubtraction(b, self.matrixElementMultiply((eta/batchSize), sb)) for b, sb in zip(self.biases, sum_biases)]
+		
+		"""
+		for b, sb in zip(self.biases, sum_biases):
+			print "B"
+			pprint(b)
+			
+			print "SB"
+			pprint(sb)
+			
+			print "MATH1"
+			math1 = self.matrixElementMultiply((eta/batchSize), sb)
+			pprint(math1)
+			
+			print "MATH"
+			math = self.matrixSubtraction(b, math1)
+			pprint(math)
+		"""
+			
 		self.weights = [self.matrixSubtraction(w, self.matrixElementMultiply((eta/batchSize), sw)) for w, sw in zip(self.weights, sum_weights)]
 		
 		print "FINAL BIASES"
