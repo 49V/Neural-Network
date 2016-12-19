@@ -99,7 +99,10 @@ class Net(object):
 		2) Compute output error, delta
 		"""
 		delta[-1] = self.hadmardProduct((self.matrixSubtraction(a[-1], output)), self.sigmoidPrimeArray(z[-1]))
-	
+		print "DELTA -1"
+		print delta[-1]
+
+
 		#We want to go from the second last value until the second value!
 		interval = range(len(self.netSize) - 2, 0, -1)
 	
@@ -259,11 +262,11 @@ class Net(object):
 	
 	
 	def sigmoid(self, x):
-		return (1 / (1 + math.exp(-x)))
+		return (1.0 / (1.0 + math.exp(-x)))
 		
 	
 	def sigmoidPrime(self, x):
-		return math.exp(x)/((1 + math.exp(-x))**2)
+		return (self.sigmoid(x) * (1 - self.sigmoid(x))) 
 		
 	
 	def sigmoidPrimeArray(self, x):
